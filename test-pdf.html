@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAR - Generador de Cotizaciones PDF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .pdf-viewer {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .pdf-viewer iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Generador de Cotizaciones</h1>
+        <p class="subtitle">Sistema CAR - Gestión de Vehículos</p>
+        
+        <form id="cotizacionForm">
+            <div class="form-group">
+                <label for="cliente">Cliente:</label>
+                <select id="cliente" required>
+                    <option value="">Cargando clientes...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="vehiculo">Vehículo:</label>
+                <select id="vehiculo" required>
+                    <option value="">Cargando vehículos...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="precio">Precio Ofrecido (RD$):</label>
+                <input type="number" id="precio" step="0.01" required placeholder="Ejemplo: 1800000">
+            </div>
+            
+            <div class="form-group">
+                <label for="observaciones">Observaciones:</label>
+                <textarea id="observaciones" placeholder="Ejemplo: Cliente desea financiamiento a 12 meses"></textarea>
+            </div>
+            
+            <button type="submit" id="btnGenerar">
+                📄 Generar Cotización y PDF
+            </button>
+        </form>
+        
+        <div id="status" class="status"></div>
+        
+        <div id="pdfViewer" class="pdf-viewer">
+            <iframe id="pdfFrame"></iframe>
+            <div class="buttons">
+                <button type="button" id="btnDescargar" class="btn-secondary">
+                    💾 Descargar PDF
+                </button>
+                <button type="button" id="btnNueva">
+                    ➕ Nueva Cotización
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let pdfData = null;
+        
+        // Cargar clientes y vehículos al iniciar
+        async function cargarDatos() {
+            try {
+                // Cargar clientes
+                const clientesRes = await fetch(`${API_URL}/clientes`);
+                const clientesData = await clientesRes.json();
+                
+                const selectCliente = document.getElementById('cliente');
+                selectCliente.innerHTML = '<option value="">Seleccione un cliente</option>';
+                
+                clientesData.data.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id_cliente;
+                    option.textContent = `${cliente.nombre} - ${cliente.cedula || 'N/A'}`;
+                    selectCliente.appendChild(option);
+                });
+                
+                // Cargar vehículos disponibles
+                const vehiculosRes = await fetch(`${API_URL}/vehiculos/disponibles`);
+                const vehiculosData = await vehiculosRes.json();
+                
+                const selectVehiculo = document.getElementById('vehiculo');
+                selectVehiculo.innerHTML = '<option value="">Seleccione un vehículo</option>';
+                
+                vehiculosData.data.forEach(vehiculo => {
+                    const option = document.createElement('option');
+                    option.value = vehiculo.id_vehiculo;
+                    option.textContent = `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio} - RD$ ${Number(vehiculo.precio).toLocaleString()}`;
+                    selectVehiculo.appendChild(option);
+                });
+                
+            } catch (error) {
+                mostrarEstado('error', '❌ Error al cargar datos. Asegúrate de que el servidor esté corriendo.');
+                console.error(error);
+            }
+        }
+        
+        // Mostrar estado
+        function mostrarEstado(tipo, mensaje) {
+            const status = document.getElementById('status');
+            status.className = `status ${tipo}`;
+            status.textContent = mensaje;
+            status.style.display = 'block';
+        }
+        
+        // Manejar envío del formulario
+        document.getElementById('cotizacionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btnGenerar = document.getElementById('btnGenerar');
+            btnGenerar.disabled = true;
+            btnGenerar.textContent = '⏳ Generando PDF...';
+            
+            mostrarEstado('loading', '⏳ Creando cotización y generando PDF...');
+            
+            try {
+                const formData = {
+                    id_cliente: parseInt(document.getElementById('cliente').value),
+                    id_vehiculo: parseInt(document.getElementById('vehiculo').value),
+                    precio_ofrecido: parseFloat(document.getElementById('precio').value),
+                    observaciones: document.getElementById('observaciones').value || null
+                };
+                
+                const response = await fetch(`${API_URL}/cotizaciones`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    pdfData = data.data.pdf;
+                    
+                    mostrarEstado('success', `✅ Cotización #${data.data.id_cotizacion} creada exitosamente. PDF generado.`);
+                    
+                    // Mostrar PDF en iframe
+                    const pdfFrame = document.getElementById('pdfFrame');
+                    pdfFrame.src = `data:application/pdf;base64,${pdfData.base64}`;
+                    
+                    document.getElementById('pdfViewer').style.display = 'block';
+                    document.getElementById('cotizacionForm').style.display = 'none';
+                    
+                } else {
+                    mostrarEstado('error', `❌ Error: ${data.message}`);
+                }
+                
+            } catch (error) {
+                mostrarEstado('error', '❌ Error al crear la cotización. Verifica que el servidor esté corriendo.');
+                console.error(error);
+            } finally {
+                btnGenerar.disabled = false;
+                btnGenerar.textContent = '📄 Generar Cotización y PDF';
+            }
+        });
+        
+        // Descargar PDF
+        document.getElementById('btnDescargar').addEventListener('click', () => {
+            if (pdfData) {
+                const link = document.createElement('a');
+                link.href = `data:application/pdf;base64,${pdfData.base64}`;
+                link.download = pdfData.nombre_archivo;
+                link.click();
+                
+                mostrarEstado('success', '✅ PDF descargado. Revisa tu carpeta de Descargas.');
+            }
+        });
+        
+        // Nueva cotización
+        document.getElementById('btnNueva').addEventListener('click', () => {
+            document.getElementById('cotizacionForm').style.display = 'block';
+            document.getElementById('pdfViewer').style.display = 'none';
+            document.getElementById('cotizacionForm').reset();
+            document.getElementById('status').style.display = 'none';
+            pdfData = null;
+        });
+        
+        // Cargar datos al inicio
+        cargarDatos();
+    </script>
+</body>
+</html>
