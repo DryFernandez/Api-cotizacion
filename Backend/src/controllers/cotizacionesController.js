@@ -88,27 +88,64 @@ const getCotizacionById = async (req, res) => {
 // Crear nueva cotización y generar PDF
 const createCotizacion = async (req, res) => {
   try {
-    const { id_cliente, id_vehiculo, precio_ofrecido, observaciones } = req.body;
+    const { 
+      tipo_cliente,
+      nombre_empresa,
+      nombre_cliente,
+      documento,
+      telefono,
+      email,
+      direccion,
+      id_vehiculo,
+      id_vendedor,
+      tipo_cotizacion,
+      precio_ofrecido,
+      observaciones
+    } = req.body;
     
-    // Validaciones
-    if (!id_cliente || !id_vehiculo || !precio_ofrecido) {
+    // Validaciones básicas
+    if (!nombre_cliente || !documento || !id_vehiculo || !id_vendedor || !precio_ofrecido) {
       return res.status(400).json({
         success: false,
-        message: 'Faltan datos requeridos: id_cliente, id_vehiculo, precio_ofrecido'
+        message: 'Faltan datos requeridos: nombre_cliente, documento, id_vehiculo, id_vendedor, precio_ofrecido'
       });
     }
     
-    // Verificar que el cliente existe
-    const [cliente] = await pool.query(
-      'SELECT * FROM clientes WHERE id_cliente = ?',
-      [id_cliente]
-    );
+    // Verificar si el cliente ya existe
+    let id_cliente;
+    let clienteQuery;
     
-    if (cliente.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cliente no encontrado'
-      });
+    if (tipo_cliente === 'Empresa') {
+      [clienteQuery] = await pool.query(
+        'SELECT id_cliente FROM clientes WHERE rnc = ?',
+        [documento]
+      );
+    } else {
+      [clienteQuery] = await pool.query(
+        'SELECT id_cliente FROM clientes WHERE cedula = ?',
+        [documento]
+      );
+    }
+    
+    // Si el cliente no existe, crearlo
+    if (clienteQuery.length === 0) {
+      let insertQuery;
+      if (tipo_cliente === 'Empresa') {
+        [insertQuery] = await pool.query(
+          `INSERT INTO clientes (tipo_cliente, nombre_empresa, nombre, rnc, telefono, correo, direccion) 
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [tipo_cliente, nombre_empresa, nombre_cliente, documento, telefono, email, direccion]
+        );
+      } else {
+        [insertQuery] = await pool.query(
+          `INSERT INTO clientes (tipo_cliente, nombre, cedula, telefono, correo, direccion) 
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [tipo_cliente || 'Individual', nombre_cliente, documento, telefono, email, direccion]
+        );
+      }
+      id_cliente = insertQuery.insertId;
+    } else {
+      id_cliente = clienteQuery[0].id_cliente;
     }
     
     // Verificar que el vehículo existe
@@ -124,38 +161,47 @@ const createCotizacion = async (req, res) => {
       });
     }
     
+    // Verificar que el vendedor existe
+    const [vendedor] = await pool.query(
+      'SELECT * FROM vendedores WHERE id_vendedor = ?',
+      [id_vendedor]
+    );
+    
+    if (vendedor.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendedor no encontrado'
+      });
+    }
+    
     // Insertar la cotización
     const [result] = await pool.query(
-      `INSERT INTO cotizaciones (id_cliente, id_vehiculo, precio_ofrecido, observaciones, estado) 
-       VALUES (?, ?, ?, ?, 'Pendiente')`,
-      [id_cliente, id_vehiculo, precio_ofrecido, observaciones || null]
+      `INSERT INTO cotizaciones (
+        id_cliente, 
+        id_vehiculo, 
+        id_vendedor,
+        tipo_cotizacion,
+        precio_ofrecido, 
+        observaciones, 
+        estado
+      ) VALUES (?, ?, ?, ?, ?, ?, 'Pendiente')`,
+      [
+        id_cliente, 
+        id_vehiculo, 
+        id_vendedor,
+        tipo_cotizacion || 'Sin Chasis',
+        precio_ofrecido, 
+        observaciones || null
+      ]
     );
     
     const id_cotizacion = result.insertId;
     
-    // Obtener los datos completos de la cotización
-    const [cotizacionCompleta] = await pool.query(`
-      SELECT 
-        c.*,
-        cl.nombre as cliente_nombre,
-        cl.cedula as cliente_cedula,
-        cl.telefono as cliente_telefono,
-        cl.correo as cliente_correo,
-        cl.direccion as cliente_direccion,
-        v.marca,
-        v.modelo,
-        v.anio,
-        v.color,
-        v.tipo,
-        v.transmision,
-        v.combustible,
-        v.kilometraje,
-        v.precio as precio_vehiculo
-      FROM cotizaciones c
-      INNER JOIN clientes cl ON c.id_cliente = cl.id_cliente
-      INNER JOIN vehiculos v ON c.id_vehiculo = v.id_vehiculo
-      WHERE c.id_cotizacion = ?
-    `, [id_cotizacion]);
+    // Obtener los datos completos de la cotización usando la vista
+    const [cotizacionCompleta] = await pool.query(
+      'SELECT * FROM vista_cotizaciones_completas WHERE id_cotizacion = ?',
+      [id_cotizacion]
+    );
     
     // Generar el PDF
     const pdfBuffer = await pdfService.generarPDFCotizacion(cotizacionCompleta[0]);
@@ -168,6 +214,7 @@ const createCotizacion = async (req, res) => {
       message: 'Cotización creada exitosamente',
       data: {
         id_cotizacion,
+        id_cliente,
         cotizacion: cotizacionCompleta[0],
         pdf: {
           base64: pdfBase64,
@@ -190,29 +237,11 @@ const descargarPDFCotizacion = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Obtener los datos de la cotización
-    const [rows] = await pool.query(`
-      SELECT 
-        c.*,
-        cl.nombre as cliente_nombre,
-        cl.cedula as cliente_cedula,
-        cl.telefono as cliente_telefono,
-        cl.correo as cliente_correo,
-        cl.direccion as cliente_direccion,
-        v.marca,
-        v.modelo,
-        v.anio,
-        v.color,
-        v.tipo,
-        v.transmision,
-        v.combustible,
-        v.kilometraje,
-        v.precio as precio_vehiculo
-      FROM cotizaciones c
-      INNER JOIN clientes cl ON c.id_cliente = cl.id_cliente
-      INNER JOIN vehiculos v ON c.id_vehiculo = v.id_vehiculo
-      WHERE c.id_cotizacion = ?
-    `, [id]);
+    // Obtener los datos completos desde la vista para incluir vendedor y nuevos campos
+    const [rows] = await pool.query(
+      'SELECT * FROM vista_cotizaciones_completas WHERE id_cotizacion = ?',
+      [id]
+    );
     
     if (rows.length === 0) {
       return res.status(404).json({
@@ -221,8 +250,8 @@ const descargarPDFCotizacion = async (req, res) => {
       });
     }
     
-    // Generar el PDF
-    const pdfBuffer = await pdfService.generarPDFCotizacion(rows[0]);
+  // Generar el PDF
+  const pdfBuffer = await pdfService.generarPDFCotizacion(rows[0]);
     
     // Configurar headers para descarga
     res.setHeader('Content-Type', 'application/pdf');

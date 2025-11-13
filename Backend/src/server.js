@@ -10,6 +10,7 @@ const vehiculosRoutes = require('./routes/vehiculos');
 const cotizacionesRoutes = require('./routes/cotizaciones');
 const ventasRoutes = require('./routes/ventas');
 const pagosRoutes = require('./routes/pagos');
+const vendedoresRoutes = require('./routes/vendedores');
 
 // Crear aplicación Express
 const app = express();
@@ -38,7 +39,8 @@ app.get('/', (req, res) => {
       vehiculos: '/api/vehiculos',
       cotizaciones: '/api/cotizaciones',
       ventas: '/api/ventas',
-      pagos: '/api/pagos'
+      pagos: '/api/pagos',
+      vendedores: '/api/vendedores'
     },
     documentation: '/api/docs'
   });
@@ -60,6 +62,7 @@ app.use('/api/vehiculos', vehiculosRoutes);
 app.use('/api/cotizaciones', cotizacionesRoutes);
 app.use('/api/ventas', ventasRoutes);
 app.use('/api/pagos', pagosRoutes);
+app.use('/api/vendedores', vendedoresRoutes);
 
 // ===== MANEJO DE ERRORES =====
 

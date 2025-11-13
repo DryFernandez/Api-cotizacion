@@ -1,0 +1,209 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║     🚗 SISTEMA DE PRUEBAS DE API - CAR                              ║
+║     Sistema completo para probar todos los endpoints del backend    ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+✅ INSTALACIÓN COMPLETADA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 Componentes Creados:
+   ✓ Servicio de API (apiService.ts)
+   ✓ Componente Principal (APITester.tsx)
+   ✓ 5 Pestañas de Pruebas (Clientes, Vehículos, Cotizaciones, Ventas, Pagos)
+   ✓ Sistema de Estilos Moderno
+   ✓ Documentación Completa
+
+
+🎯 PARA INICIAR EL SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASO 1: Iniciar el Backend
+───────────────────────────
+Abre una terminal y ejecuta:
+
+   cd Backend
+   npm start
+
+✅ Debes ver: "🚀 Servidor corriendo exitosamente"
+📡 Backend estará en: http://localhost:3000
+
+
+PASO 2: Iniciar el Frontend
+────────────────────────────
+Abre OTRA terminal y ejecuta:
+
+   cd Frontend
+   npm run dev
+
+✅ Debes ver: "Local: http://localhost:5173"
+🌐 Frontend estará en: http://localhost:5173
+
+
+PASO 3: Abrir en el Navegador
+──────────────────────────────
+Visita: http://localhost:5173
+
+🎉 ¡El sistema de pruebas está listo!
+
+
+🎨 QUÉ VERÁS EN LA INTERFAZ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏠 HEADER
+   • Título: "CAR API Tester"
+   • Indicador de estado de API (Online/Offline)
+   • Botón para actualizar estado
+
+🔖 PESTAÑAS
+   🧑‍💼 Clientes     - Crear y consultar clientes
+   🚗 Vehículos    - Ver vehículos disponibles
+   📊 Cotizaciones - Crear cotizaciones y generar PDFs
+   💰 Ventas       - Consultar ventas realizadas
+   💳 Pagos        - Ver historial de pagos
+
+
+📋 FUNCIONALIDADES POR PESTAÑA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧑‍💼 CLIENTES
+   • GET /api/clientes          → Listar todos
+   • GET /api/clientes/:id      → Buscar por ID
+   • POST /api/clientes         → Crear nuevo (con formulario)
+
+🚗 VEHÍCULOS
+   • GET /api/vehiculos         → Listar todos
+   • GET /api/vehiculos/disponibles → Solo disponibles
+   • GET /api/vehiculos/:id     → Buscar por ID
+
+📊 COTIZACIONES
+   • GET /api/cotizaciones      → Listar todas
+   • GET /api/cotizaciones/:id  → Buscar por ID
+   • POST /api/cotizaciones     → Crear nueva (genera PDF)
+   • GET /api/cotizaciones/:id/pdf → Descargar PDF
+
+💰 VENTAS
+   • GET /api/ventas            → Listar todas
+   • GET /api/ventas/:id        → Buscar por ID
+
+💳 PAGOS
+   • GET /api/pagos             → Listar todos
+   • GET /api/pagos/venta/:id_venta → Pagos por venta
+
+
+📚 DOCUMENTACIÓN DISPONIBLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 Frontend/GUIA-USO.md
+   Tutorial paso a paso para usar el sistema
+
+📖 Frontend/SISTEMA-PRUEBAS.md
+   Documentación técnica completa
+
+📖 Frontend/COMPLETADO.md
+   Resumen de todo lo implementado
+
+📖 COMANDOS.md
+   Referencia rápida de comandos útiles
+
+📖 README.md
+   Vista general del proyecto completo
+
+
+💡 EJEMPLOS RÁPIDOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ CREAR UN CLIENTE
+   • Ir a pestaña "Clientes"
+   • Llenar el formulario de crear cliente
+   • Clic en "Crear Cliente"
+   • ✅ Verás el cliente en la tabla
+
+2️⃣ VER VEHÍCULOS DISPONIBLES
+   • Ir a pestaña "Vehículos"
+   • Clic en "Obtener Vehículos Disponibles"
+   • ✅ Verás lista de vehículos en stock
+
+3️⃣ GENERAR COTIZACIÓN CON PDF
+   • Ir a pestaña "Cotizaciones"
+   • Seleccionar cliente y vehículo
+   • Ingresar enganche, plazo y tasa
+   • Clic en "Crear Cotización y Generar PDF"
+   • ✅ Cotización creada + PDF generado
+
+4️⃣ DESCARGAR PDF
+   • En pestaña "Cotizaciones"
+   • Ingresar ID de cotización
+   • Clic en "Descargar PDF"
+   • ✅ Archivo descargado
+
+
+🎯 CARACTERÍSTICAS DESTACADAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ Interfaz Moderna
+   • Diseño con gradientes morados
+   • Animaciones suaves
+   • Totalmente responsivo
+
+⚡ Funcionalidad Completa
+   • Todos los endpoints funcionando
+   • Formularios validados
+   • Auto-completado inteligente
+
+🛡️ Manejo de Errores
+   • Validación de campos
+   • Mensajes claros
+   • Indicador de estado de API
+
+📊 Visualización de Datos
+   • Tablas interactivas
+   • Badges de estado con colores
+   • Respuestas del servidor en JSON
+
+
+🚨 SOLUCIÓN RÁPIDA DE PROBLEMAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "API Offline"
+   → Asegúrate de que el backend esté corriendo (Paso 1)
+
+❌ No aparecen datos
+   → Verifica que haya datos en la base de datos MySQL
+
+❌ Error al crear cliente
+   → Revisa que el email sea único y válido
+
+❌ PDF no descarga
+   → Verifica que la cotización exista y tenga el ID correcto
+
+
+🎉 ¡SISTEMA LISTO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Todo está configurado y funcionando:
+   ✅ 5 Pestañas de pruebas
+   ✅ 13+ Endpoints disponibles
+   ✅ Formularios para crear registros
+   ✅ Descarga de PDFs
+   ✅ Diseño moderno y responsivo
+   ✅ Documentación completa
+
+
+📞 RECURSOS ADICIONALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 Backend API: http://localhost:3000
+🔗 Frontend: http://localhost:5173
+🔗 Health Check: http://localhost:3000/health
+🔗 API Base: http://localhost:3000/api
+
+
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║  ¡Disfruta probando tu API! 🚀                                      ║
+║                                                                      ║
+║  Para más ayuda, consulta: Frontend/GUIA-USO.md                     ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
